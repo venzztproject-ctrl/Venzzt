@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Venzzt — Aprende a operar los mercados</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#040407;
+  --bg-soft:#07070d;
+  --ink:#0b0b14;
+  --white:#f6f5f1;
+  --muted:rgba(246,245,241,.46);
+  --faint:rgba(246,245,241,.10);
+  --line:rgba(246,245,241,.07);
+  --gold:#cdab73;
+  --gold-soft:#e3cfa6;
+  --gold-dim:rgba(205,171,115,.10);
+  --gold-line:rgba(205,171,115,.28);
+  --green:#5fbf8f;
+  --red:#dd5b5b;
+  --ease:cubic-bezier(.16,1,.3,1);
+}
+html{scroll-behavior:smooth}
+#vsl{scroll-margin-top:4.5rem}
+body{
+  font-family:'DM Sans',sans-serif;
+  background:var(--bg);
+  color:var(--white);
+  overflow-x:hidden;
+  line-height:1;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ─── ambient grid + grain ─── */
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(205,171,115,.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(205,171,115,.025) 1px,transparent 1px);
+  background-size:64px 64px;
+  mask-image:radial-gradient(ellipse at 50% 0%,#000 0%,transparent 75%);
+  -webkit-mask-image:radial-gradient(ellipse at 50% 0%,#000 0%,transparent 75%);
+}
+body::after{
+  content:'';position:fixed;inset:0;z-index:998;pointer-events:none;opacity:.55;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+}
+main,nav,footer{position:relative;z-index:1}
+
+/* ─── load reveal primitives ─── */
+@keyframes riseUp{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes clipUp{from{opacity:0;transform:translateY(34px);clip-path:inset(0 0 100% 0)}to{opacity:1;transform:translateY(0);clip-path:inset(0 0 0 0)}}
+@keyframes lineGrow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes drawPath{to{stroke-dashoffset:0}}
+@keyframes floatY{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@keyframes particleFloat{0%{opacity:0;transform:translateY(100px) translateX(0)}50%{opacity:.6}100%{opacity:0;transform:translateY(-100px) translateX(var(--tx))}}
+@keyframes glowPulse{0%{opacity:.4}50%{opacity:1}100%{opacity:.4}}
+@keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+
+.reveal{opacity:0;transform:translateY(30px);transition:opacity 1s var(--ease),transform 1s var(--ease)}
+.reveal.in{opacity:1;transform:none}
+.reveal[data-d="1"]{transition-delay:.08s}
+.reveal[data-d="2"]{transition-delay:.16s}
+.reveal[data-d="3"]{transition-delay:.24s}
+
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+  .reveal{opacity:1;transform:none}
+}
+
+/* ─── NAV ─── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:1.4rem 3.5rem;
+  transition:padding .4s var(--ease),background .4s var(--ease),border-color .4s var(--ease);
+  border-bottom:1px solid transparent;
+  animation:fadeIn 1s .1s both;
+}
+nav.scrolled{
+  padding:.95rem 3.5rem;
+  background:rgba(4,4,7,.72);
+  backdrop-filter:blur(14px) saturate(1.2);
+  -webkit-backdrop-filter:blur(14px) saturate(1.2);
+  border-bottom:1px solid var(--line);
+}
+.nav-logo{
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.5rem;font-weight:400;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--white);text-decoration:none;
+  display:flex;align-items:center;gap:.6rem;
+}
+.nav-logo::before{
+  content:'';width:7px;height:7px;background:var(--gold);
+  transform:rotate(45deg);box-shadow:0 0 12px rgba(205,171,115,.6);
+}
+.nav-links{display:flex;gap:2.6rem;list-style:none;align-items:center}
+.nav-links a{
+  font-size:.72rem;font-weight:400;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--muted);text-decoration:none;
+  position:relative;transition:color .3s;
+}
+.nav-links a::after{
+  content:'';position:absolute;left:0;bottom:-6px;width:100%;height:1px;
+  background:var(--gold);transform:scaleX(0);transform-origin:right;
+  transition:transform .35s var(--ease);
+}
+.nav-links a:hover{color:var(--white)}
+.nav-links a:hover::after{transform:scaleX(1);transform-origin:left}
+.nav-btn{
+  font-size:.7rem;font-weight:500;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--bg);background:var(--gold);
+  padding:.65rem 1.7rem;border:none;cursor:pointer;text-decoration:none;
+  position:relative;overflow:hidden;
+  transition:color .3s;
+}
+.nav-btn span{position:relative;z-index:1}
+.nav-btn::before{
+  content:'';position:absolute;inset:0;background:var(--gold-soft);
+  transform:translateY(101%);transition:transform .35s var(--ease);
+}
+.nav-btn:hover::before{transform:translateY(0)}
+
+/* ─── HERO / TOP INTRO ─── */
+.hero{
+  position:relative;min-height:100vh;
+  display:grid;place-items:center;
+  text-align:center;padding:9rem 2rem 5rem;
+  overflow:hidden;
+}
+.hero-glow{
+  position:absolute;top:-10%;left:50%;transform:translateX(-50%);
+  width:1100px;height:760px;
+  background:radial-gradient(ellipse at 50% 30%,rgba(205,171,115,.11) 0%,transparent 62%);
+  pointer-events:none;animation:fadeIn 2s ease both;
+}
+/* animated equity-curve chart behind hero */
+.hero-chart{
+  position:absolute;left:0;right:0;bottom:0;height:62%;
+  width:100%;pointer-events:none;opacity:.85;
+  mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);
+}
+.hero-chart .line{
+  fill:none;stroke:url(#gGold);stroke-width:1.4;
+  stroke-dasharray:2400;stroke-dashoffset:2400;
+  animation:drawPath 3.2s 1.1s var(--ease) forwards;
+  filter:drop-shadow(0 0 6px rgba(205,171,115,.35));
+}
+.hero-chart .area{fill:url(#gFill);opacity:0;animation:fadeIn 2s 3s ease forwards}
+.hero-chart .dot{
+  fill:var(--gold-soft);opacity:0;
+  animation:fadeIn .6s 3.6s ease forwards,floatY 4s 4s ease-in-out infinite;
+}
+.hero-inner{position:relative;z-index:3;max-width:920px;margin:0 auto}
+
+.hero-kicker{
+  display:inline-flex;align-items:center;gap:.85rem;
+  font-family:'JetBrains Mono',monospace;
+  font-size:.66rem;letter-spacing:.34em;text-transform:uppercase;
+  color:var(--gold);margin-bottom:2.4rem;
+  animation:riseUp .9s .25s both;
+}
+.hero-kicker::before,.hero-kicker::after{
+  content:'';display:inline-block;width:30px;height:1px;background:var(--gold-line);
+}
+.hero-headline{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(3.4rem,9.5vw,7.6rem);
+  font-weight:300;line-height:1;letter-spacing:-.015em;
+  margin-bottom:2.1rem;
+}
+.hero-headline .l1{display:block;animation:clipUp 1.1s .35s var(--ease) both}
+.hero-headline .l2{display:block;animation:clipUp 1.1s .5s var(--ease) both}
+.hero-headline em{font-style:italic;color:var(--gold)}
+.hero-sub{
+  font-size:clamp(.95rem,1.7vw,1.08rem);
+  font-weight:300;color:var(--muted);
+  max-width:500px;margin:0 auto 3rem;line-height:1.85;
+  animation:riseUp 1s .7s both;
+}
+.hero-sub strong{color:var(--gold-soft);font-weight:400}
+.hero-actions{
+  display:flex;flex-direction:column;align-items:center;gap:1.3rem;
+  animation:riseUp 1s .85s both;
+}
+.btn-hero{
+  display:inline-block;
+  font-size:.78rem;font-weight:500;letter-spacing:.18em;text-transform:uppercase;
+  padding:1.15rem 3.6rem;background:var(--gold);
+  border:1px solid var(--gold);color:var(--bg);text-decoration:none;
+  position:relative;overflow:hidden;
+}
+.btn-hero span{position:relative;z-index:1;transition:color .3s}
+.btn-hero::before{
+  content:'';position:absolute;inset:0;background:var(--bg);
+  transform:translateY(101%);transition:transform .4s var(--ease);
+}
+.btn-hero:hover::before{transform:translateY(0)}
+.btn-hero:hover span{color:var(--white)}
+.scroll-hint{
+  font-family:'JetBrains Mono',monospace;
+  font-size:.62rem;letter-spacing:.26em;text-transform:uppercase;
+  color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:.7rem;
+}
+.scroll-hint::after{
+  content:'';width:1px;height:34px;
+  background:linear-gradient(var(--gold-line),transparent);
+  animation:floatY 2.4s ease-in-out infinite;
+}
+
+/* ─── TICKER ─── */
+.ticker-wrap{
+  overflow:hidden;padding:1.05rem 0;
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  background:rgba(7,7,13,.5);
+}
+.ticker-track{display:flex;gap:3.5rem;width:max-content;animation:tickMove 38s linear infinite}
+.ticker-wrap:hover .ticker-track{animation-play-state:paused}
+@keyframes tickMove{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.tick-item{
+  display:flex;align-items:center;gap:.7rem;
+  font-family:'JetBrains Mono',monospace;
+  font-size:.72rem;letter-spacing:.04em;white-space:nowrap;color:var(--muted);
+}
+.tick-sym{font-weight:500;color:var(--white);letter-spacing:.06em}
+.tick-up{color:var(--green)}.tick-dn{color:var(--red)}
+
+/* ─── SECTION COMMON ─── */
+.section{padding:8.5rem 2rem;position:relative}
+.section-inner{max-width:1080px;margin:0 auto}
+.label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:.64rem;letter-spacing:.28em;text-transform:uppercase;
+  color:var(--gold);margin-bottom:1.3rem;display:inline-flex;align-items:center;gap:.7rem;
+}
+.label::before{content:'';width:22px;height:1px;background:var(--gold-line)}
+.heading{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(2.4rem,5vw,4rem);font-weight:300;line-height:1.08;
+  letter-spacing:-.01em;
+}
+.heading em{font-style:italic;color:var(--gold)}
+
+/* ─── NUMBERS ─── */
+.numbers-wrap{max-width:1080px;margin:0 auto;padding:0 2rem}
+.numbers-row{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+}
+.num-box{padding:3.4rem 2rem;border-right:1px solid var(--line);text-align:left}
+.num-box:last-child{border-right:none}
+.num-val{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(2.8rem,5vw,4.4rem);font-weight:300;
+  color:var(--gold);line-height:1;margin-bottom:.7rem;display:block;
+}
+.num-label{font-size:.78rem;font-weight:300;color:var(--muted);line-height:1.6}
+
+/* ─── METHOD / SPLIT ─── */
+.split{display:grid;grid-template-columns:.85fr 1fr;gap:5rem;align-items:center}
+.split-visual{
+  position:relative;aspect-ratio:4/5;
+  background:linear-gradient(160deg,#13121c,#0a0911);
+  border:1px solid var(--line);overflow:hidden;
+}
+.split-photo{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;
+}
+.split-visual::after{
+  content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(4,4,7,.05),rgba(4,4,7,.65));
+}
+.img-badge{
+  position:absolute;bottom:-1px;right:-1px;background:var(--gold);color:var(--bg);
+  padding:1.1rem 1.5rem;font-size:.66rem;font-weight:500;
+  letter-spacing:.1em;text-transform:uppercase;
+}
+.img-badge strong{
+  font-family:'Cormorant Garamond',serif;font-size:2.3rem;font-weight:300;
+  display:block;line-height:1;letter-spacing:0;
+}
+.split-body .heading{margin-bottom:1.6rem}
+.split-body p{font-size:.95rem;font-weight:300;color:var(--muted);line-height:1.9;margin-bottom:1rem}
+.split-body p em{color:var(--gold-soft);font-style:italic}
+.chips{display:flex;gap:.55rem;flex-wrap:wrap;margin-top:2rem}
+.chip{
+  font-family:'JetBrains Mono',monospace;
+  font-size:.64rem;font-weight:400;letter-spacing:.08em;text-transform:uppercase;
+  border:1px solid var(--line);padding:.45rem .95rem;color:var(--muted);
+  transition:border-color .3s,color .3s;
+}
+.chip:hover{border-color:var(--gold-line);color:var(--gold-soft)}
+
+/* ─── DIVIDER ─── */
+.divider{width:100%;height:1px;background:linear-gradient(90deg,transparent,var(--line) 30%,var(--line) 70%,transparent)}
+
+/* ─── CURRICULUM ─── */
+.curriculum-section{background:linear-gradient(180deg,var(--bg) 0%,#08070f 100%)}
+.curriculum-header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:4rem;gap:2rem}
+.curriculum-header p{font-size:.82rem;font-weight:300;color:var(--muted);max-width:260px;line-height:1.8;text-align:right}
+.mod-row{
+  display:grid;grid-template-columns:64px 1fr auto;align-items:center;gap:2rem;
+  padding:1.9rem 1rem;border-bottom:1px solid var(--line);
+  transition:background .35s var(--ease),padding .35s var(--ease);
+}
+.mod-row:first-child{border-top:1px solid var(--line)}
+.mod-row:hover{background:rgba(205,171,115,.04);padding-left:1.6rem}
+.mod-n{
+  font-family:'Cormorant Garamond',serif;font-size:1.9rem;font-weight:300;
+  color:var(--faint);letter-spacing:.05em;transition:color .35s}
+.mod-row:hover .mod-n{color:var(--gold)}
+.mod-info h3{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:400;margin-bottom:.4rem}
+.mod-info p{font-size:.82rem;font-weight:300;color:var(--muted);line-height:1.65}
+.mod-tag{
+  font-family:'JetBrains Mono',monospace;
+  font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--gold);border:1px solid var(--gold-line);
+  padding:.35rem .85rem;white-space:nowrap;
+}
+
+/* ─── FOR WHOM ─── */
+.forwho-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:1px;background:var(--line);border:1px solid var(--line);margin-top:3.5rem;
+}
+.forwho-card{background:var(--bg);padding:2.8rem 2rem;transition:background .35s var(--ease)}
+.forwho-card:hover{background:#0c0b15}
+.fcard-num{
+  font-family:'Cormorant Garamond',serif;font-size:2.6rem;font-weight:300;
+  color:var(--faint);line-height:1;margin-bottom:1.4rem;
+}
+.fcard-title{font-family:'Cormorant Garamond',serif;font-size:1.25rem;font-weight:400;margin-bottom:.8rem}
+.fcard-desc{font-size:.82rem;font-weight:300;color:var(--muted);line-height:1.75}
+
+/* ─── TESTIMONIALS ─── */
+.testi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-top:3.5rem}
+.testi-card{
+  border:1px solid var(--line);padding:2.2rem 2rem;position:relative;
+  background:rgba(8,7,15,.4);transition:border-color .35s,transform .35s var(--ease)}
+.testi-card:hover{border-color:var(--gold-line);transform:translateY(-4px)}
+.testi-card::before{
+  content:'\201C';font-family:'Cormorant Garamond',serif;
+  font-size:3.6rem;font-weight:300;color:var(--gold);
+  position:absolute;top:-.9rem;left:1.6rem;line-height:1;opacity:.45;
+}
+.testi-body{
+  font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:300;
+  font-style:italic;line-height:1.7;color:rgba(246,245,241,.78);margin-bottom:1.6rem;
+}
+.testi-result{font-family:'Cormorant Garamond',serif;font-size:1.7rem;font-weight:300;color:var(--gold);line-height:1;margin-bottom:.35rem}
+.testi-who{font-family:'JetBrains Mono',monospace;font-size:.66rem;letter-spacing:.06em;color:var(--muted);text-transform:uppercase}
+
+/* ─── FORM ─── */
+.form-section{padding:8.5rem 2rem;position:relative;overflow:hidden}
+.form-glow{
+  position:absolute;bottom:-10%;left:50%;transform:translateX(-50%);
+  width:800px;height:480px;
+  background:radial-gradient(ellipse,rgba(205,171,115,.08) 0%,transparent 70%);pointer-events:none;
+}
+.form-inner{
+  max-width:1080px;margin:0 auto;
+  display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:start;
+}
+.form-left .heading{margin-bottom:1.6rem}
+.form-left>p{font-size:.92rem;font-weight:300;color:var(--muted);line-height:1.85;margin-bottom:2.2rem}
+.form-perks{display:flex;flex-direction:column;gap:1rem}
+.perk{display:flex;align-items:center;gap:.85rem;font-size:.83rem;font-weight:300;color:var(--muted)}
+.perk::before{content:'';width:14px;height:14px;border:1px solid var(--gold-line);position:relative;flex-shrink:0}
+.perk::after{content:'';position:absolute;width:5px;height:5px;background:var(--gold);margin-left:4.5px;box-shadow:0 0 8px rgba(205,171,115,.5)}
+
+.form-card{
+  border:1px solid var(--gold-line);padding:2.6rem;
+  background:linear-gradient(165deg,rgba(13,12,22,.9),rgba(7,6,14,.95));
+  backdrop-filter:blur(6px);position:relative;
+}
+.form-card::before,.form-card::after{
+  content:'';position:absolute;width:20px;height:20px;border:1px solid var(--gold);pointer-events:none}
+.form-card::before{top:-1px;left:-1px;border-right:none;border-bottom:none}
+.form-card::after{bottom:-1px;right:-1px;border-left:none;border-top:none}
+.form-card-title{font-family:'Cormorant Garamond',serif;font-size:1.55rem;font-weight:300;margin-bottom:.4rem}
+.form-card-sub{font-size:.78rem;font-weight:300;color:var(--muted);margin-bottom:2rem;line-height:1.65}
+.frow{margin-bottom:1rem}
+.flabel{display:block;font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:.5rem}
+.finput,.fselect{
+  width:100%;background:rgba(4,4,8,.7);border:1px solid var(--line);
+  padding:.9rem 1rem;font-size:.88rem;font-family:'DM Sans',sans-serif;
+  color:var(--white);outline:none;appearance:none;-webkit-appearance:none;
+  transition:border-color .25s,background .25s;
+}
+.finput::placeholder{color:rgba(246,245,241,.2)}
+.finput:focus,.fselect:focus{border-color:var(--gold-line);background:rgba(4,4,8,.95)}
+.fselect{
+  cursor:pointer;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23cdab73' stroke-width='1.2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 1rem center;padding-right:2.5rem;
+}
+.fselect option{background:#0a0912;color:var(--white)}
+.phone-row{display:flex;gap:.5rem}
+.fprefix{
+  width:108px;flex-shrink:0;background:rgba(4,4,8,.7);border:1px solid var(--line);
+  padding:.9rem .7rem;font-size:.85rem;font-family:'DM Sans',sans-serif;
+  color:var(--white);outline:none;appearance:none;-webkit-appearance:none;cursor:pointer;
+  transition:border-color .25s;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23cdab73' stroke-width='1.2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right .4rem center;padding-right:1.4rem;
+}
+.fprefix:focus{border-color:var(--gold-line)}
+.fprefix option,.fselect option{background:#0a0912}
+.ferr{font-size:.66rem;color:var(--red);margin-top:.35rem;display:none}
+.finput.err,.fselect.err,.fprefix.err{border-color:rgba(221,91,91,.5)}
+.fconsent{display:flex;gap:.65rem;align-items:flex-start;margin:1.35rem 0 .5rem}
+.fconsent input[type=checkbox]{width:15px;height:15px;flex-shrink:0;margin-top:2px;accent-color:var(--gold);cursor:pointer}
+.fconsent label{font-size:.72rem;color:var(--muted);line-height:1.5;cursor:pointer}
+.fconsent a{color:var(--gold);text-decoration:none}
+.fconsent a:hover{color:var(--gold-soft)}
+.fsubmit{
+  width:100%;margin-top:1rem;font-family:'JetBrains Mono',monospace;
+  font-size:.72rem;font-weight:500;letter-spacing:.16em;text-transform:uppercase;
+  padding:1.1rem;background:var(--gold);color:var(--bg);border:none;cursor:pointer;
+  position:relative;overflow:hidden;transition:transform .2s var(--ease)}
+.fsubmit span{position:relative;z-index:1;transition:color .3s}
+.fsubmit::before{content:'';position:absolute;inset:0;background:var(--gold-soft);transform:translateY(101%);transition:transform .35s var(--ease)}
+.fsubmit:hover:not(:disabled){transform:translateY(-2px)}
+.fsubmit:hover:not(:disabled)::before{transform:translateY(0)}
+.fsubmit:disabled{opacity:.45;cursor:not-allowed}
+.fsuccess{display:none;padding:2.5rem 0;text-align:center}
+.fsuccess-icon{font-size:2.5rem;margin-bottom:1rem;display:block;color:var(--gold);animation:popIn .5s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes popIn{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+.fsuccess-title{font-family:'Cormorant Garamond',serif;font-size:1.8rem;font-weight:300;color:var(--gold);margin-bottom:.5rem}
+.fsuccess-sub{font-size:.85rem;font-weight:300;color:var(--muted);line-height:1.7}
+.floader{display:inline-block;width:14px;height:14px;border:1.5px solid rgba(4,4,8,.3);border-top-color:var(--bg);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+#fApiErr{text-align:center;font-size:.72rem;color:var(--red);margin-top:.75rem;display:none}
+
+/* ─── FAQ ─── */
+.faq-list{margin-top:3rem;border-top:1px solid var(--line)}
+.faq-item{border-bottom:1px solid var(--line);padding:1.6rem 0;cursor:pointer}
+.faq-q{display:flex;justify-content:space-between;align-items:center;font-family:'Cormorant Garamond',serif;font-size:1.18rem;font-weight:400;transition:color .25s}
+.faq-item:hover .faq-q{color:var(--gold-soft)}
+.faq-q .ico{font-size:1.2rem;color:var(--gold);transition:transform .35s var(--ease);flex-shrink:0;margin-left:1rem}
+.faq-item.open .ico{transform:rotate(45deg)}
+.faq-a{font-size:.85rem;font-weight:300;color:var(--muted);line-height:1.8;max-height:0;overflow:hidden;transition:max-height .4s var(--ease),padding .3s}
+.faq-item.open .faq-a{max-height:200px;padding-top:1rem}
+
+/* ─── FOOTER ─── */
+footer{padding:3.5rem;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1.5rem}
+.footer-logo{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:400;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+.footer-legal{font-size:.66rem;color:rgba(246,245,241,.22);line-height:1.7;max-width:500px;text-align:right}
+
+/* ─── VSL ─── */
+.vsl-section{padding:0 2rem 7rem;position:relative;overflow:hidden}
+.vsl-inner{max-width:880px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:2rem;position:relative;z-index:2}
+.vsl-label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:.62rem;letter-spacing:.26em;text-transform:uppercase;
+  color:var(--gold);display:flex;align-items:center;gap:.75rem}
+.vsl-label::before,.vsl-label::after{content:'';display:inline-block;width:26px;height:1px;background:var(--gold-line)}
+.vsl-frame{
+  width:100%;position:relative;aspect-ratio:16/9;
+  background:linear-gradient(160deg,#100f1d 0%,#0a0914 60%,#0d0b1a 100%);
+  border:1px solid var(--line);overflow:hidden;cursor:pointer;
+  transition:border-color .4s var(--ease),box-shadow .6s var(--ease);box-shadow:0 0 0 1px rgba(205,171,115,0)}
+.vsl-frame:hover{border-color:var(--gold-line);box-shadow:0 0 40px rgba(205,171,115,.25),0 0 80px rgba(205,171,115,.1)}
+.vsl-frame::before,.vsl-frame::after{content:'';position:absolute;pointer-events:none;border:1px solid var(--gold-line);z-index:3;width:26px;height:26px;transition:width .45s var(--ease),height .45s var(--ease)}
+.vsl-frame::before{top:-1px;left:-1px;border-right:none;border-bottom:none}
+.vsl-frame::after{bottom:-1px;right:-1px;border-left:none;border-top:none}
+.vsl-frame:hover::before,.vsl-frame:hover::after{width:46px;height:46px}
+.vsl-scanlines{position:absolute;inset:0;z-index:2;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.06) 2px,rgba(0,0,0,.06) 4px);opacity:.5}
+.vsl-glow{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:420px;height:280px;background:radial-gradient(ellipse,rgba(205,171,115,.15) 0%,rgba(205,171,115,.05) 40%,transparent 70%);pointer-events:none;z-index:1;transition:opacity .5s var(--ease);animation:glowPulse 3.5s ease-in-out infinite}
+.vsl-frame:hover .vsl-glow{opacity:2;animation:glowPulse 2s ease-in-out infinite}
+.vsl-glow-secondary{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:600px;height:400px;background:radial-gradient(ellipse,rgba(205,171,115,.08) 0%,transparent 60%);pointer-events:none;z-index:0;filter:blur(40px)}
+.vsl-frame:hover .vsl-glow-secondary{animation:glowPulse 4s ease-in-out infinite}
+.vsl-thumb{position:absolute;inset:0;z-index:1;transition:opacity .35s,transform .35s var(--ease);background-image:linear-gradient(0deg,rgba(4,4,7,.72) 0%,rgba(4,4,7,.18) 42%,transparent 70%),linear-gradient(160deg,#14111e 0%,#0a0812 100%),url('https://vumbnail.com/1207207714.jpg');background-size:cover;background-position:center;background-repeat:no-repeat;transform:scale(1.02)}
+.vsl-frame:hover .vsl-thumb{opacity:.75;transform:scale(1.03)}
+.vsl-particles{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.vsl-particle{position:absolute;width:4px;height:4px;background:radial-gradient(circle,rgba(205,171,115,.8),rgba(205,171,115,.2));border-radius:50%;pointer-events:none}
+.vsl-particle.active{animation:particleFloat var(--duration) ease-out forwards}
+.vsl-play{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:4;display:flex;flex-direction:column;align-items:center;gap:1.1rem;pointer-events:none;transition:transform .35s cubic-bezier(.34,1.56,.64,1)}
+.vsl-frame:hover .vsl-play{transform:translate(-50%,-50%) scale(1.07)}
+.vsl-play-ring{width:78px;height:78px;border-radius:50%;border:1px solid var(--gold-line);display:flex;align-items:center;justify-content:center;position:relative;background:rgba(205,171,115,.07);backdrop-filter:blur(4px)}
+.vsl-play-ring::before{content:'';position:absolute;inset:-7px;border-radius:50%;border:1px solid rgba(205,171,115,.14);animation:floatY 3s ease-in-out infinite}
+.vsl-play-triangle{width:0;height:0;border-top:10px solid transparent;border-bottom:10px solid transparent;border-left:18px solid var(--gold);margin-left:4px;filter:drop-shadow(0 0 8px rgba(205,171,115,.5))}
+.vsl-play-label{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:300;font-style:italic;color:rgba(246,245,241,.6);letter-spacing:.06em}
+.vsl-meta{position:absolute;bottom:0;left:0;right:0;padding:.95rem 1.5rem;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(0deg,rgba(4,4,7,.85) 0%,transparent 100%);z-index:4}
+.vsl-duration{font-family:'JetBrains Mono',monospace;font-size:.64rem;letter-spacing:.1em;color:var(--muted)}
+.vsl-cta-inline{font-family:'JetBrains Mono',monospace;font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);display:flex;align-items:center;gap:.5rem;opacity:.75}
+.vsl-cta-inline::after{content:'→'}
+.vsl-caption{font-size:.8rem;font-weight:300;color:var(--muted);letter-spacing:.02em;line-height:1.75;text-align:center}
+.vsl-caption strong{color:rgba(246,245,241,.6);font-weight:400}
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:900px){
+  nav,nav.scrolled{padding:1.1rem 1.4rem}
+  .nav-links{display:none}
+  .hero{padding:8rem 1.5rem 4rem}
+  .split,.form-inner{grid-template-columns:1fr;gap:3rem}
+  .numbers-row{grid-template-columns:1fr}
+  .num-box{border-right:none;border-bottom:1px solid var(--line);padding:2.2rem 1rem}
+  .num-box:last-child{border-bottom:none}
+  .forwho-grid,.testi-grid{grid-template-columns:1fr}
+  .curriculum-header{flex-direction:column;align-items:flex-start;gap:1rem}
+  .curriculum-header p{text-align:left}
+  .mod-row{grid-template-columns:48px 1fr;gap:1.2rem}
+  .mod-tag{display:none}
+  .section{padding:5.5rem 1.5rem}
+  .form-card{padding:1.8rem 1.3rem}
+  .vsl-section{padding:0 1.25rem 5rem}
+  .vsl-play-ring{width:62px;height:62px}
+  footer{flex-direction:column;text-align:center}
+  .footer-legal{text-align:center}
+}
+</style>
+</head>
+<body>
+<main>
+
+<!-- ══ NAV ══ -->
+<nav id="nav">
+  <a href="#" class="nav-logo">Venzzt</a>
+  <ul class="nav-links">
+    <li><a href="#metodo">Método</a></li>
+    <li><a href="#curriculum">Programa</a></li>
+    <li><a href="#acceso">Acceso</a></li>
+  </ul>
+  <a href="#acceso" class="nav-btn"><span>Acceder al curso</span></a>
+</nav>
+
+<!-- ══ HERO ══ -->
+<section class="hero">
+  <div class="hero-glow"></div>
+  <svg class="hero-chart" viewBox="0 0 1440 420" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="gGold" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="rgba(205,171,115,.15)"/>
+        <stop offset=".5" stop-color="rgba(205,171,115,.85)"/>
+        <stop offset="1" stop-color="rgba(227,207,166,.95)"/>
+      </linearGradient>
+      <linearGradient id="gFill" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="rgba(205,171,115,.10)"/>
+        <stop offset="1" stop-color="rgba(205,171,115,0)"/>
+      </linearGradient>
+    </defs>
+    <path class="area" d="M0,340 C120,330 200,300 300,310 C400,320 470,250 580,260 C690,270 760,180 880,190 C1000,200 1080,120 1200,110 C1320,100 1400,70 1440,55 L1440,420 L0,420 Z"/>
+    <path class="line" d="M0,340 C120,330 200,300 300,310 C400,320 470,250 580,260 C690,270 760,180 880,190 C1000,200 1080,120 1200,110 C1320,100 1400,70 1440,55"/>
+    <circle class="dot" cx="1440" cy="55" r="4.5"/>
+    <circle class="dot" cx="880" cy="190" r="3.5"/>
+  </svg>
+  <div class="hero-inner">
+    <div class="hero-kicker">Escuela privada de trading</div>
+    <h1 class="hero-headline">
+      <span class="l1">Trading <em>real</em></span>
+      <span class="l2">para resultados claros</span>
+    </h1>
+    <p class="hero-sub">Aprende a leer el precio y operar con un sistema repetible. <strong>Sin ruido, sin atajos.</strong></p>
+    <div class="hero-actions">
+      <a href="#vsl" class="btn-hero"><span>Ver presentación</span></a>
+      <span class="scroll-hint">Mira el video</span>
+    </div>
+  </div>
+</section>
+
+<!-- ══ VSL ══ -->
+<section class="vsl-section" id="vsl">
+  <div class="vsl-inner">
+    <div class="vsl-label reveal">Presentación del programa</div>
+        <div class="vsl-frame reveal" data-d="1" role="button" aria-label="Ver presentación del programa"
+          onclick="this.innerHTML='<iframe src=\'https://player.vimeo.com/video/1207207714?autoplay=1\' frameborder=\'0\' allow=\'autoplay; fullscreen; picture-in-picture\' allowfullscreen style=\'position:absolute;inset:0;width:100%;height:100%\'></iframe>'">
+      <div class="vsl-glow-secondary"></div>
+      <div class="vsl-particles"></div>
+      <div class="vsl-scanlines"></div>
+      <div class="vsl-glow"></div>
+      <div class="vsl-thumb"></div>
+      <div class="vsl-play">
+        <div class="vsl-play-ring"><div class="vsl-play-triangle"></div></div>
+        <span class="vsl-play-label">Ver presentación</span>
+      </div>
+      <div class="vsl-meta">
+        <span class="vsl-cta-inline">Ver ahora</span>
+      </div>
+    </div>
+    <p class="vsl-caption reveal" data-d="2">Antes de acceder, mira esta presentación y <strong>descubre si este programa es para ti.</strong></p>
+  </div>
+</section>
+
+<!-- ══ TICKER ══ -->
+<div class="ticker-wrap">
+  <div class="ticker-track">
+    <span class="tick-item"><span class="tick-sym">EUR/USD</span>1.0821<span class="tick-dn">▼ −0.3%</span></span>
+    <span class="tick-item"><span class="tick-sym">GBP/USD</span>1.2550<span class="tick-up">▲ +0.6%</span></span>
+    <span class="tick-item"><span class="tick-sym">USD/JPY</span>148.71<span class="tick-up">▲ +0.2%</span></span>
+    <span class="tick-item"><span class="tick-sym">AUD/USD</span>0.6723<span class="tick-dn">▼ −0.1%</span></span>
+    <span class="tick-item"><span class="tick-sym">USD/CAD</span>1.3452<span class="tick-up">▲ +0.4%</span></span>
+    <span class="tick-item"><span class="tick-sym">USD/CHF</span>0.9178<span class="tick-dn">▼ −0.2%</span></span>
+    <span class="tick-item"><span class="tick-sym">NZD/USD</span>0.6041<span class="tick-up">▲ +0.3%</span></span>
+    <span class="tick-item"><span class="tick-sym">EUR/USD</span>1.0821<span class="tick-dn">▼ −0.3%</span></span>
+    <span class="tick-item"><span class="tick-sym">GBP/USD</span>1.2550<span class="tick-up">▲ +0.6%</span></span>
+    <span class="tick-item"><span class="tick-sym">USD/JPY</span>148.71<span class="tick-up">▲ +0.2%</span></span>
+    <span class="tick-item"><span class="tick-sym">AUD/USD</span>0.6723<span class="tick-dn">▼ −0.1%</span></span>
+    <span class="tick-item"><span class="tick-sym">USD/CAD</span>1.3452<span class="tick-up">▲ +0.4%</span></span>
+  </div>
+</div>
+
+<!-- ══ NUMBERS ══ -->
+<div class="numbers-wrap">
+  <div class="numbers-row reveal">
+    <div class="num-box">
+      <span class="num-val" data-count="200" data-prefix="+">+200</span>
+      <span class="num-label">alumnos formados<br>desde 2020</span>
+    </div>
+    <div class="num-box">
+      <span class="num-val" data-count="81" data-suffix="%">81%</span>
+      <span class="num-label">en profit<br>al tercer mes</span>
+    </div>
+    <div class="num-box">
+      <span class="num-val" data-count="4">4</span>
+      <span class="num-label">módulos · acceso<br>de por vida</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══ METHOD / SPLIT ══ -->
+<section class="section" id="metodo">
+  <div class="section-inner">
+    <div class="split">
+      <div class="split-visual reveal">
+        <img class="split-photo" src="photo.jpg" alt="Trading sin ruido"/>
+        <div class="img-badge"><strong>8+</strong>años operando</div>
+      </div>
+      <div class="split-body reveal" data-d="1">
+        <span class="label">El método Venzzt</span>
+        <h2 class="heading">Trading sin <em>ruido</em></h2>
+        <p style="margin-top:1.5rem">La mayoría de cursos enseñan a seguir indicadores que llegan tarde. Venzzt parte de entender <em>por qué</em> se mueve el precio antes de operar.</p>
+        <p>Price action, estructura de mercado y gestión de riesgo real. Un sistema que puedes repetir con confianza.</p>
+        <div class="chips">
+          <span class="chip">Price Action</span>
+          <span class="chip">Gestión de riesgo</span>
+          <span class="chip">Forex</span>
+          <span class="chip">Psicología</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══ CURRICULUM ══ -->
+<section class="section curriculum-section" id="curriculum">
+  <div class="section-inner">
+    <div class="curriculum-header reveal">
+      <div>
+        <span class="label">Programa completo</span>
+        <h2 class="heading">Qué aprenderás<br>en <em>Venzzt</em></h2>
+      </div>
+      <p>4 módulos · comunidad privada · soporte directo · acceso de por vida.</p>
+    </div>
+    <div class="curriculum-grid">
+      <div class="mod-row reveal">
+        <span class="mod-n">01</span>
+        <div class="mod-info">
+          <h3>Psicología y disciplina</h3>
+          <p>Controla emociones y decide sin reaccionar al ruido.</p>
+        </div>
+        <span class="mod-tag">Base</span>
+      </div>
+      <div class="mod-row reveal" data-d="1">
+        <span class="mod-n">02</span>
+        <div class="mod-info">
+          <h3>Entradas y salidas</h3>
+          <p>Define puntos de entrada, stop ideal y dónde cerrar con ganancias.</p>
+        </div>
+        <span class="mod-tag">Core</span>
+      </div>
+      <div class="mod-row reveal" data-d="2">
+        <span class="mod-n">03</span>
+        <div class="mod-info">
+          <h3>Gestión de riesgo</h3>
+          <p>Protege tu capital con reglas claras de posición y stop loss.</p>
+        </div>
+        <span class="mod-tag">Crítico</span>
+      </div>
+      <div class="mod-row reveal" data-d="3">
+        <span class="mod-n">04</span>
+        <div class="mod-info">
+          <h3>Estrategias avanzadas y trading en vivo</h3>
+          <p>Aplica métodos robustos en sesiones reales con apoyo práctico.</p>
+        </div>
+        <span class="mod-tag">Avanzado</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══ FOR WHOM ══ -->
+<section class="section">
+  <div class="section-inner">
+    <span class="label reveal">¿Es para ti?</span>
+    <h2 class="heading reveal" data-d="1">Para quienes lo<br><em>toman en serio</em></h2>
+    <div class="forwho-grid reveal" data-d="2">
+      <div class="forwho-card">
+        <div class="fcard-num">01</div>
+        <h3 class="fcard-title">Empiezas desde cero</h3>
+        <p class="fcard-desc">Sin experiencia previa. Estructurado para llegar a operar con sistema propio.</p>
+      </div>
+      <div class="forwho-card">
+        <div class="fcard-num">02</div>
+        <h3 class="fcard-title">Llevas tiempo pero pierdes</h3>
+        <p class="fcard-desc">Conoces lo básico pero el resultado no llega. Identificamos qué está fallando.</p>
+      </div>
+      <div class="forwho-card">
+        <div class="fcard-num">03</div>
+        <h3 class="fcard-title">Buscas consistencia</h3>
+        <p class="fcard-desc">No golpes de suerte. Construyes un edge repetible a lo largo del tiempo.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ TESTIMONIALS ══ -->
+<section class="section" style="background:#060510">
+  <div class="section-inner">
+    <span class="label reveal">Resultados reales</span>
+    <h2 class="heading reveal" data-d="1">Lo que dicen quienes<br>ya <em>pasaron por aquí</em></h2>
+    <div class="testi-grid">
+      <div class="testi-card reveal">
+        <p class="testi-body">Aprendí a leer el precio y a tomar decisiones con sentido, no a copiar métodos sueltos.</p>
+        <div class="testi-result">+1.840 USD / mes</div>
+        <div class="testi-who">Carlos M. · México</div>
+      </div>
+      <div class="testi-card reveal" data-d="1">
+        <p class="testi-body">La disciplina y el riesgo claro lo cambiaron todo. Opero con más confianza y menos miedo.</p>
+        <div class="testi-result">+3.200 USD / mes</div>
+        <div class="testi-who">Ana R. · España</div>
+      </div>
+      <div class="testi-card reveal" data-d="2">
+        <p class="testi-body">No soy novato, me faltaba orden. Ahora tengo una rutina de entradas que funciona.</p>
+        <div class="testi-result">+640$ primer mes</div>
+        <div class="testi-who">Diego F. · Argentina</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ FORM ══ -->
+<section class="form-section" id="acceso">
+  <div class="form-glow"></div>
+  <div class="form-inner">
+    <div class="form-left reveal">
+      <span class="label">Accede ahora</span>
+      <h2 class="heading">Empieza con un<br><em>sistema real</em></h2>
+      <p style="margin-top:1.6rem">Completa el formulario y recibirás acceso inmediato al programa, la comunidad privada y soporte directo.</p>
+      <div class="form-perks">
+        <span class="perk">Acceso de por vida a los 4 módulos</span>
+        <span class="perk">Comunidad privada de traders</span>
+        <span class="perk">Soporte por email</span>
+        <span class="perk">Actualizaciones sin coste</span>
+        <span class="perk">Garantía de 14 días sin preguntas</span>
+      </div>
+    </div>
+
+    <div class="form-card reveal" data-d="1">
+      <!-- SUCCESS STATE -->
+      <div class="fsuccess" id="formSuccess">
+        <span class="fsuccess-icon">✦</span>
+        <p class="fsuccess-title">Bienvenido a Venzzt</p>
+        <p class="fsuccess-sub">Revisa tu correo, te enviamos el acceso al programa en los próximos minutos.</p>
+      </div>
+
+      <!-- FIELDS -->
+      <form id="lead-form">
+        <p class="form-card-title">Solicita tu acceso</p>
+        <p class="form-card-sub">Te contactamos en menos de 24 h para confirmar tu plaza.</p>
+
+        <div class="frow">
+          <label class="flabel" for="f-name">Nombre completo</label>
+          <input class="finput" id="f-name" name="name" type="text" placeholder="Tu nombre" autocomplete="name"/>
+          <span class="ferr" id="err-name">Ingresa tu nombre completo.</span>
+        </div>
+
+        <div class="frow">
+          <label class="flabel" for="f-email">Email</label>
+          <input class="finput" id="f-email" name="email" type="email" placeholder="tu@correo.com" autocomplete="email"/>
+          <span class="ferr" id="err-email">Ingresa un email válido.</span>
+        </div>
+
+        <div class="frow">
+          <label class="flabel" for="f-country">País</label>
+          <select class="fselect" id="f-country">
+            <option value="">Selecciona…</option>
+            <option>Argentina</option><option>Bolivia</option><option>Chile</option>
+            <option>Colombia</option><option>Costa Rica</option><option>Ecuador</option>
+            <option>El Salvador</option><option>España</option><option>Estados Unidos</option>
+            <option>Guatemala</option><option>Honduras</option><option>México</option>
+            <option>Nicaragua</option><option>Panamá</option><option>Paraguay</option>
+            <option>Perú</option><option>Puerto Rico</option>
+            <option>República Dominicana</option><option>Uruguay</option>
+            <option>Venezuela</option><option>Otro</option>
+          </select>
+          <span class="ferr" id="err-country">Selecciona tu país.</span>
+        </div>
+
+        <div class="frow">
+          <label class="flabel" for="f-phone">WhatsApp</label>
+          <div class="phone-row">
+            <select class="fprefix" id="f-prefix">
+              <option value="+54">🇦🇷 +54</option><option value="+591">🇧🇴 +591</option>
+              <option value="+56">🇨🇱 +56</option><option value="+57">🇨🇴 +57</option>
+              <option value="+506">🇨🇷 +506</option><option value="+593">🇪🇨 +593</option>
+              <option value="+503">🇸🇻 +503</option><option value="+34">🇪🇸 +34</option>
+              <option value="+1">🇺🇸 +1</option><option value="+502">🇬🇹 +502</option>
+              <option value="+504">🇭🇳 +504</option><option value="+52">🇲🇽 +52</option>
+              <option value="+505">🇳🇮 +505</option><option value="+507">🇵🇦 +507</option>
+              <option value="+595">🇵🇾 +595</option>
+              <option value="+51" selected>🇵🇪 +51</option>
+              <option value="+1787">🇵🇷 +1787</option><option value="+1809">🇩🇴 +1809</option>
+              <option value="+598">🇺🇾 +598</option><option value="+58">🇻🇪 +58</option>
+            </select>
+            <input class="finput" id="f-phone" name="phone" type="tel" placeholder="987 654 321" autocomplete="tel"/>
+          </div>
+          <span class="ferr" id="err-phone">Ingresa un número válido.</span>
+        </div>
+
+        <div class="fconsent">
+          <input type="checkbox" id="f-consent"/>
+          <label for="f-consent">Acepto recibir información del curso por email y WhatsApp. Puedo darme de baja cuando quiera. <a href="#">Privacidad</a>.</label>
+        </div>
+        <span class="ferr" id="err-consent">Debes aceptar para continuar.</span>
+
+        <button class="fsubmit" id="fSubmit" type="submit">
+          <span>Solicitar acceso →</span>
+        </button>
+        <p id="fApiErr"></p>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- ══ FAQ ══ -->
+<section class="section" style="padding-top:4rem">
+  <div class="section-inner" style="max-width:720px">
+    <span class="label reveal">Preguntas frecuentes</span>
+    <h2 class="heading reveal" data-d="1">¿Tienes <em>dudas?</em></h2>
+    <div class="faq-list reveal" data-d="2">
+      <div class="faq-item">
+        <div class="faq-q">¿Necesito experiencia previa? <span class="ico">+</span></div>
+        <div class="faq-a">No. El programa está estructurado desde cero. Si ya tienes experiencia, los módulos avanzados te serán especialmente útiles.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">¿Cuánto tiempo necesito por semana? <span class="ico">+</span></div>
+        <div class="faq-a">Con 3-4 horas semanales avanzas a buen ritmo. El acceso es de por vida, vas a tu propio paso.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">¿Qué mercados cubre el curso? <span class="ico">+</span></div>
+        <div class="faq-a">Operamos en Forex.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">¿Hay garantía de devolución? <span class="ico">+</span></div>
+        <div class="faq-a">Sí. Tienes 14 días para revisarlo y si no te convence te devolvemos el importe completo, sin preguntas.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ FOOTER ══ -->
+<footer>
+  <span class="footer-logo">Venzzt</span>
+  <p class="footer-legal">Los resultados mostrados corresponden a alumnos reales y no garantizan resultados futuros. El trading implica riesgo de pérdida de capital. Opera solo con dinero que puedas permitirte perder. © 2025 Venzzt. Todos los derechos reservados.</p>
+</footer>
+
+</main>
+
+<!-- ══ SCRIPTS ══ -->
+<script>
+// ══════════════════════════════════════════
+//  ⚙️  CONFIGURACIÓN MAILERLITE
+//  1. En Vercel, configura MAILERLITE_API_KEY con tu JWT secreto.
+//  2. En Vercel, configura MAILERLITE_GROUP_ID con el ID del grupo.
+// ══════════════════════════════════════════
+
+// Nav background on scroll
+const navEl = document.getElementById('nav');
+window.addEventListener('scroll', () => {
+  navEl.classList.toggle('scrolled', window.scrollY > 40);
+}, { passive:true });
+
+// Center video when clicking "Ver presentación"
+const vslButton = document.querySelector('.btn-hero[href="#vsl"]');
+if (vslButton) {
+  vslButton.addEventListener('click', (event) => {
+    event.preventDefault();
+    const targetSection = document.getElementById('vsl');
+    const targetFrame = targetSection?.querySelector('.vsl-frame');
+    if (!targetSection || !targetFrame) {
+      window.location.hash = 'vsl';
+      return;
+    }
+
+    const frameRect = targetFrame.getBoundingClientRect();
+    const offsetTop = window.scrollY + frameRect.top;
+    const centerTop = offsetTop - (window.innerHeight - frameRect.height) / 2;
+
+    window.scrollTo({ top: Math.max(centerTop, 0), behavior: 'smooth' });
+  });
+}
+
+// Scroll reveal
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+  });
+}, { threshold:.16, rootMargin:'0px 0px -8% 0px' });
+document.querySelectorAll('.reveal, .split-visual').forEach(el => io.observe(el));
+
+// Count-up numbers
+function animateCount(el) {
+  const target = parseFloat(el.dataset.count);
+  const prefix = el.dataset.prefix || '';
+  const suffix = el.dataset.suffix || '';
+  const dur = 1400;
+  const start = performance.now();
+  function tick(now) {
+    const p = Math.min((now - start) / dur, 1);
+    const eased = 1 - Math.pow(1 - p, 3);
+    el.textContent = prefix + Math.round(target * eased) + suffix;
+    if (p < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+const numIO = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { animateCount(e.target); numIO.unobserve(e.target); }
+  });
+}, { threshold:.6 });
+document.querySelectorAll('.num-val[data-count]').forEach(el => numIO.observe(el));
+
+// FAQ accordion
+document.querySelectorAll('.faq-item').forEach(item => {
+  item.querySelector('.faq-q').addEventListener('click', () => {
+    const isOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+    if (!isOpen) item.classList.add('open');
+  });
+});
+
+// VSL Particles effect
+const vslFrame = document.querySelector('.vsl-frame');
+const particlesContainer = document.querySelector('.vsl-particles');
+if (vslFrame && particlesContainer) {
+  function createParticles() {
+    const numParticles = 12;
+    for (let i = 0; i < numParticles; i++) {
+      const particle = document.createElement('div');
+      particle.className = 'vsl-particle';
+      const startX = Math.random() * 100;
+      const startY = Math.random() * 100;
+      const tx = (Math.random() - 0.5) * 200;
+      const duration = 2 + Math.random() * 2;
+      particle.style.left = startX + '%';
+      particle.style.top = startY + '%';
+      particle.style.setProperty('--tx', tx + 'px');
+      particle.style.setProperty('--duration', duration + 's');
+      particlesContainer.appendChild(particle);
+      particle.classList.add('active');
+      setTimeout(() => particle.remove(), duration * 1000);
+    }
+  }
+  
+  // Crear partículas al hacer hover
+  vslFrame.addEventListener('mouseenter', () => {
+    for (let i = 0; i < 3; i++) {
+      setTimeout(() => createParticles(), i * 200);
+    }
+  });
+  
+  // Crear partículas periódicamente
+  setInterval(() => {
+    if (Math.random() > 0.7) createParticles();
+  }, 2000);
+}
+
+// Validation helpers
+function setErr(fid, eid, show) {
+  const f = document.getElementById(fid);
+  const e = document.getElementById(eid);
+  if (show) { f?.classList.add('err'); e.style.display = 'block'; }
+  else       { f?.classList.remove('err'); e.style.display = 'none'; }
+}
+
+function validate() {
+  const name    = document.getElementById('f-name').value.trim();
+  const email   = document.getElementById('f-email').value.trim();
+  const country = document.getElementById('f-country').value;
+  const phone   = document.getElementById('f-phone').value.replace(/\s/g,'');
+  const consent = document.getElementById('f-consent').checked;
+
+  const v = {
+    name:    name.length >= 2,
+    email:   /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email),
+    country: country !== '',
+    phone:   /^\d{6,15}$/.test(phone),
+    consent,
+  };
+  setErr('f-name',    'err-name',    !v.name);
+  setErr('f-email',   'err-email',   !v.email);
+  setErr('f-country', 'err-country', !v.country);
+  setErr('f-phone',   'err-phone',   !v.phone);
+  document.getElementById('err-consent').style.display = v.consent ? 'none' : 'block';
+  return v.name && v.email && v.country && v.phone && v.consent;
+}
+
+
+// Clear errors on input
+['f-name','f-email','f-phone'].forEach(id => {
+  document.getElementById(id).addEventListener('input', function(){
+    this.classList.remove('err');
+    document.getElementById('err-' + id.split('-')[1]).style.display = 'none';
+  });
+});
+document.getElementById('f-country').addEventListener('change', function(){
+  this.classList.remove('err');
+  document.getElementById('err-country').style.display = 'none';
+});
+document.getElementById('f-consent').addEventListener('change', function(){
+  document.getElementById('err-consent').style.display = 'none';
+});
+</script>
+
+<script>
+// MailerLite front-end submit handler (AJAX)
+// La clave secreta se mueve al backend Vercel. El frontend solo llama a /api/subscribe.
+
+(function(){
+  const form = document.getElementById('lead-form');
+  if (!form) return;
+
+  form.addEventListener('submit', async function(e){
+    e.preventDefault();
+    document.getElementById('fApiErr').style.display = 'none';
+    if (!validate()) return;
+
+    const btn = document.getElementById('fSubmit');
+    const originalHTML = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span>Enviando...</span>';
+
+    try {
+      const name = document.getElementById('f-name').value.trim();
+      const email = document.getElementById('f-email').value.trim();
+      const country = document.getElementById('f-country').value;
+      const prefix = document.getElementById('f-prefix').value;
+      const phone = prefix + document.getElementById('f-phone').value.replace(/\s/g,'');
+
+      const body = { name, email, country, phone };
+
+      const res = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+      });
+
+      if (res.ok) {
+        form.style.display = 'none';
+        document.getElementById('formSuccess').style.display = 'block';
+        document.querySelector('.form-card').scrollIntoView({ behavior:'smooth', block:'center' });
+      } else {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || 'status ' + res.status);
+      }
+    } catch (err) {
+      console.error(err);
+      const errEl = document.getElementById('fApiErr');
+      errEl.style.cssText = 'display:block;text-align:center;font-size:.72rem;color:var(--red);margin-top:.75rem';
+      errEl.textContent = 'Algo salió mal. Intenta de nuevo más tarde.';
+      btn.disabled = false;
+      btn.innerHTML = originalHTML;
+    }
+  });
+})();
+</script>
+<script>
+;(async function() {
+  const thumb = document.querySelector('.vsl-thumb');
+  const videoId = '1207207714';
+  if (!thumb) return;
+
+  try {
+    const response = await fetch(`https://vimeo.com/api/oembed.json?url=https://vimeo.com/${videoId}`);
+    if (!response.ok) return;
+    const data = await response.json();
+    if (!data?.thumbnail_url) return;
+
+    thumb.style.backgroundImage = `linear-gradient(0deg,rgba(4,4,7,.7) 0%,transparent 50%),linear-gradient(160deg,#14111e 0%,#0a0812 100%),url('${data.thumbnail_url}')`;
+  } catch (error) {
+    console.warn('No se pudo cargar la miniatura de Vimeo', error);
+  }
+})();
+</script>
+</body>
+</html>
