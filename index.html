@@ -477,8 +477,9 @@ footer{padding:3.5rem;border-top:1px solid var(--line);display:flex;justify-cont
 .vsl-frame:hover .vsl-glow{opacity:2;animation:glowPulse 2s ease-in-out infinite}
 .vsl-glow-secondary{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:600px;height:400px;background:radial-gradient(ellipse,rgba(205,171,115,.08) 0%,transparent 60%);pointer-events:none;z-index:0;filter:blur(40px)}
 .vsl-frame:hover .vsl-glow-secondary{animation:glowPulse 4s ease-in-out infinite}
-.vsl-thumb{position:absolute;inset:0;z-index:1;transition:opacity .35s,transform .35s var(--ease);background-image:linear-gradient(0deg,rgba(4,4,7,.72) 0%,rgba(4,4,7,.18) 42%,transparent 70%),linear-gradient(160deg,#14111e 0%,#0a0812 100%),url('https://vumbnail.com/1207207714.jpg');background-size:cover;background-position:center;background-repeat:no-repeat;transform:scale(1.02)}
-.vsl-frame:hover .vsl-thumb{opacity:.75;transform:scale(1.03)}
+.vsl-thumb{position:absolute;inset:0;z-index:1;transition:opacity .35s,transform .35s var(--ease);background-image:url('https://vumbnail.com/1207207714.jpg');background-size:cover;background-position:center;background-repeat:no-repeat;transform:scale(1.02)}
+.vsl-thumb::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(4,4,7,.12) 0%,rgba(4,4,7,0) 45%,rgba(4,4,7,.12) 100%);}
+.vsl-frame:hover .vsl-thumb{opacity:1;transform:scale(1.03)}
 .vsl-particles{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
 .vsl-particle{position:absolute;width:4px;height:4px;background:radial-gradient(circle,rgba(205,171,115,.8),rgba(205,171,115,.2));border-radius:50%;pointer-events:none}
 .vsl-particle.active{animation:particleFloat var(--duration) ease-out forwards}
@@ -1100,7 +1101,10 @@ document.getElementById('f-consent').addEventListener('change', function(){
     const data = await response.json();
     if (!data?.thumbnail_url) return;
 
-    thumb.style.backgroundImage = `linear-gradient(0deg,rgba(4,4,7,.7) 0%,transparent 50%),linear-gradient(160deg,#14111e 0%,#0a0812 100%),url('${data.thumbnail_url}')`;
+    thumb.style.backgroundImage = `url('${data.thumbnail_url}')`;
+    thumb.style.backgroundSize = 'cover';
+    thumb.style.backgroundPosition = 'center';
+    thumb.style.backgroundRepeat = 'no-repeat';
   } catch (error) {
     console.warn('No se pudo cargar la miniatura de Vimeo', error);
   }
