@@ -1037,7 +1037,7 @@ document.getElementById('f-consent').addEventListener('change', function(){
 
 <script>
 // MailerLite front-end submit handler (AJAX)
-// La clave secreta se mueve al backend Vercel. El frontend solo llama a /api/subscribe.
+// Usa el endpoint interno /api/subscribe y las variables de entorno registradas en Vercel.
 
 (function(){
   const form = document.getElementById('lead-form');
@@ -1058,16 +1058,14 @@ document.getElementById('f-consent').addEventListener('change', function(){
       const email = document.getElementById('f-email').value.trim();
       const country = document.getElementById('f-country').value;
       const prefix = document.getElementById('f-prefix').value;
-      const phone = prefix + document.getElementById('f-phone').value.replace(/\s/g,'');
-
-      const body = { name, email, country, phone };
+      const phone = prefix + document.getElementById('f-phone').value.replace(/\s/g, '');
 
       const res = await fetch('/api/subscribe', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(body)
+        body: JSON.stringify({ name, email, country, phone })
       });
 
       if (res.ok) {
