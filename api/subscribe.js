@@ -17,6 +17,36 @@ export default async function handler(req, res) {
     return res.status(400).json({ success: false, message: 'Missing required fields' });
   }
 
+  const findGroupId = async (groupKey) => {
+    const normalized = String(groupKey).trim();
+    if (!normalized) return null;
+
+    if (/^[0-9]+$/.test(normalized) || /^[0-9a-fA-F-]{36}$/.test(normalized)) {
+      return normalized;
+    }
+
+    const groupsRes = await fetch('https://connect.mailerlite.com/api/groups', {
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    const groupsData = await groupsRes.json().catch(() => null);
+    const groups = Array.isArray(groupsData) ? groupsData : groupsData?.data || [];
+    if (!Array.isArray(groups)) return null;
+
+    return groups.find((group) => {
+      const name = String(group.name || '').trim().toLowerCase();
+      const id = String(group.id || '').trim();
+      return name === normalized.toLowerCase() || id === normalized;
+    })?.id || null;
+  };
+
+  const resolvedGroupId = await findGroupId(groupId);
+  if (!resolvedGroupId) {
+    return res.status(500).json({ success: false, message: 'MailerLite group ID is invalid. Check MAILERLITE_GROUP_ID in Vercel.' });
+  }
+
   try {
     const formatDate = (date) => {
       const pad = (value) => String(value).padStart(2, '0');
@@ -36,7 +66,7 @@ export default async function handler(req, res) {
           phone,
           country,
         },
-        groups: [groupId],
+        groups: [resolvedGroupId],
         status: 'active',
         opted_in_at: formatDate(new Date()),
       }),
