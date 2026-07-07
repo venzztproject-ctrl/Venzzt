@@ -18,6 +18,11 @@ export default async function handler(req, res) {
   }
 
   try {
+    const formatDate = (date) => {
+      const pad = (value) => String(value).padStart(2, '0');
+      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+    };
+
     const mailerRes = await fetch('https://connect.mailerlite.com/api/subscribers', {
       method: 'POST',
       headers: {
@@ -33,7 +38,7 @@ export default async function handler(req, res) {
         },
         groups: [groupId],
         status: 'active',
-        opted_in_at: new Date().toISOString(),
+        opted_in_at: formatDate(new Date()),
       }),
     });
 
