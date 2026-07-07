@@ -1074,13 +1074,16 @@ document.getElementById('f-consent').addEventListener('change', function(){
         document.querySelector('.form-card').scrollIntoView({ behavior:'smooth', block:'center' });
       } else {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.message || 'status ' + res.status);
+        const message = data.message || 'status ' + res.status;
+        throw new Error(message);
       }
     } catch (err) {
       console.error(err);
       const errEl = document.getElementById('fApiErr');
       errEl.style.cssText = 'display:block;text-align:center;font-size:.72rem;color:var(--red);margin-top:.75rem';
-      errEl.textContent = 'Algo salió mal. Intenta de nuevo más tarde.';
+      errEl.textContent = err.message.includes('404')
+        ? 'El backend /api/subscribe no está disponible. Prueba desplegar en Vercel o usar Vercel Dev.'
+        : err.message || 'Algo salió mal. Intenta de nuevo más tarde.';
       btn.disabled = false;
       btn.innerHTML = originalHTML;
     }
